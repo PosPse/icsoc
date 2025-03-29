@@ -11,12 +11,15 @@ model = AutoModelForCausalLM.from_pretrained(config.model_name, device_map="auto
 
 dataset = load_dataset("json", data_files=config.dataset_path, split="train")
 
+max_length = 0
 def process_func(example):
+    global max_length
     input = tokenizer.apply_chat_template(example["messages"], tokenize=False, add_generation_prompt=False)
     encoding = tokenizer(input, return_tensors="pt", padding=True, truncation=True, max_length=4096)
     input_ids = encoding["input_ids"]
     attention_mask = encoding["attention_mask"]
     labels = input_ids.clone()
+    max_length = max(max_length, len(input_ids[0]))
     return {
         "input_ids": input_ids[0],
         "attention_mask": attention_mask[0],
@@ -24,6 +27,7 @@ def process_func(example):
     }
 
 dataset = dataset.map(process_func)
+print(max_length)
 
 splited = dataset.train_test_split(test_size=0.1)
 train_dataset = splited["train"]
@@ -85,6 +89,6 @@ trainer = Trainer(
 #     peft_config=lora_config,
 # )
 
-trainer.train()
+# trainer.train()
 
 
