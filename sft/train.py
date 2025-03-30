@@ -52,6 +52,7 @@ args = TrainingArguments(
     save_steps=100, # by default 500
     torch_empty_cache_steps=10,  # empty GPU cache every 10 steps
     bf16=True,
+    report_to="tensorboard",
 )
 
 model.add_adapter(lora_config)
@@ -79,6 +80,7 @@ trainer = Trainer(
 #     eval_strategy='steps', # by default 'no'
 #     eval_steps=100, 
 #     bf16=True,
+#     report_to="tensorboard",
 # )
 
 # trainer = SFTTrainer(
@@ -89,6 +91,6 @@ trainer = Trainer(
 #     peft_config=lora_config,
 # )
 
-# trainer.train()
+trainer.train()
 
 

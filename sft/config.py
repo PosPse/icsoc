@@ -1,7 +1,7 @@
 import torch
 
 class Config:
-    model_name = "/home/user1/baitianrui/python/model/safetensors/Qwen2-7B-Instruct"
+    model_name = "/home/user1/baitianrui/python/model/safetensors/Qwen2.5-0.5B-Instruct"
     dataset_path = "/home/user1/baitianrui/python/icsoc/datasets/PAGED/dialog_tuning_dataset.json"
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     
