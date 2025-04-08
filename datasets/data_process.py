@@ -164,14 +164,19 @@ class DataProcess:
         output = InstructionTuning.output_prompt(actors, len(actors), activities, data_objects, text_annotations, business_process_diagram)
         return self._formatting_prompts_func(system, instruction, input, output)
     
-    def _transfer_to_openai_sharegpt_data(self, data: list[dict]) -> dict:
-        dialog_data = []
-        for d in data:
-            if d["system"] != "":
-                dialog_data.append({"role": "system", "content": d["system"]})
-            dialog_data.append({"role": "user", "content": f'{d["instruction"]}\n{d["input"]}' if d["input"] != "" else d["instruction"]})
-            dialog_data.append({"role": "assistant", "content": d["output"]})
-        return {"messages": dialog_data}
+    def _transfer_to_openai_sharegpt_data(self, data: list[dict] | dict) -> dict:
+        if isinstance(data, list):
+            dialog_data = []
+            for d in data:
+                if d["system"] != "":
+                    dialog_data.append({"role": "system", "content": d["system"]})
+                dialog_data.append({"role": "user", "content": f'{d["instruction"]}\n{d["input"]}' if d["input"] != "" else d["instruction"]})
+                dialog_data.append({"role": "assistant", "content": d["output"]})
+            return {"messages": dialog_data}
+        elif isinstance(data, dict):       
+            return {"messages": [{"role": "system", "content": data["system"]}, {"role": "user", "content": f'{data["instruction"]}\n{data["input"]}'}, {"role": "assistant", "content": data["output"]}]}
+        else:
+            raise ValueError(f"Invalid data type: {type(data)}")
 
     def build_dialog_tuning_dataset(self, save_path):
         openai_sharegpt_dataset = []
@@ -187,6 +192,7 @@ class DataProcess:
         for data in tqdm(self._raw_data, desc="Instruction Dataset Processing: "):
             data = from_dict(data_class=Data, data=data)
             data = self._transfer_to_instruction_data(data)
+            data = self._transfer_to_openai_sharegpt_data(data)
             instruction_tuning_dataset.append(data)
         self.save_dataset(instruction_tuning_dataset, save_path)
         
@@ -199,4 +205,4 @@ if __name__ == "__main__":
     xml_data_path = "./PAGED/xml_data.json"
     data_process = DataProcess(raw_data_path, xml_data_path)
     # data_process.build_dialog_tuning_dataset(save_path="./PAGED/dialog_tuning_dataset.json")
-    data_process.build_instruction_tuning_dataset(save_path="./PAGED/instruction_tuning_dataset.json")
+    data_process.build_instruction_tuning_dataset(save_path="./PAGED/instruction_tuning_dataset_sharegpt.json")
